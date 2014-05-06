@@ -20,6 +20,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.graphics.BitmapFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +33,10 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
@@ -110,37 +114,56 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
    
    
    public Mat edge_detect(Mat src) {
-	   
 	   Mat detected_edges = new Mat(src.size(), src.type());
 	   
-	   double lowThreshold = 100;
-	   int ratio = 3;
+	   double lowThreshold = 50;
+	   int ratio = 5;
 	   Size sz = new Size(3,3);
 	   
-	   //dst.create( src.size(), src.type());
 	   Imgproc.blur(src, detected_edges, sz);  
 	   Imgproc.Canny(src, detected_edges, lowThreshold, lowThreshold*ratio);
-	   //src.copyTo(dst, detected_edges);
 	   
 	   return detected_edges;
-   }  
+   }
+   
+   public Mat lines_detect(Mat src, Mat mRgba) {
+	   Mat lines = new Mat();
+	   double rho = 1;
+	   double theta = Math.PI/180;
+	   int threshold = 50;
+	   double minLineLength = 150;
+	   double maxLineGap = 25;
+	   
+	   Imgproc.HoughLinesP(src, lines, rho, theta, threshold, minLineLength, maxLineGap);
+	   
+	   for (int x = 0; x < lines.cols(); x++) 
+	    {
+	          double[] vec = lines.get(0, x);
+	          double x1 = vec[0], 
+	                 y1 = vec[1],
+	                 x2 = vec[2],
+	                 y2 = vec[3];
+	          Point start = new Point(x1, y1);
+	          Point end = new Point(x2, y2);
+
+	          Core.line(mRgba, start, end, new Scalar(255,0,0), 3);
+
+	    }
+	   
+	   return mRgba;
+   }
    
    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 	   if (frame_count == 0) {
 		   cur_img = new Mat(inputFrame.gray().size(), inputFrame.gray().type());
 	   }
 	   
-	   //implement edge canny edge detection on src
-	   
 	   //if (frame_count != 0 && frame_count % 25 == 0) {
-		//   Log.i(TAG, "wouldve edge detected");
-		   
-		   cur_img = edge_detect(inputFrame.gray());
+	   //cur_img = edge_detect(inputFrame.gray());
 	   //}
-	   	   
-	   //return inputFrame.rgba();
+	   //frame_count++;
 	   
-	   frame_count++;
+	   cur_img = lines_detect(edge_detect(inputFrame.gray()), inputFrame.rgba());
 	   
 	   return cur_img;
    }
