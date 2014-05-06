@@ -13,9 +13,11 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -40,12 +42,15 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-public class MainActivity extends Activity  implements CvCameraViewListener2 {
+public class MainActivity extends Activity  implements OnTouchListener, CvCameraViewListener2 {
+	
+	private static final boolean VERBOSE = true;
 	
 	final private String TAG = "Debug";
 	private CameraBridgeViewBase mOpenCvCameraView;
 	int frame_count = 0;
 	private Mat cur_img;
+    private Mat mRgba_global;
 	
 	@Override
 	 public void onCreate(Bundle savedInstanceState) {
@@ -69,6 +74,7 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
                {
                    Log.i(TAG, "OpenCV loaded successfully");
                    mOpenCvCameraView.enableView();
+                   mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                } break;
                default:
                {
@@ -103,6 +109,23 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
        super.onDestroy();
        if (mOpenCvCameraView != null)
            mOpenCvCameraView.disableView();
+   }
+   
+   public boolean onTouch(View v, MotionEvent event) {
+       int cols = mRgba_global.cols();
+       int rows = mRgba_global.rows();
+
+       int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
+       int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
+
+       int x = (int)event.getX() - xOffset;
+       int y = (int)event.getY() - yOffset;
+
+       Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
+
+       if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
+
+       return false; // don't need subsequent touch events
    }
 
    public void onCameraViewStarted(int width, int height) {
@@ -153,8 +176,32 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   return mRgba;
    }
    
+   
+   public Mat overlay_target(Mat mRgba){
+	   
+	   if (VERBOSE) Log.v(TAG, "+++ Pixels = " + Long.toString(mRgba.total()) + " +++");
+	   if (VERBOSE) Log.v(TAG, "+++ Channels = " + Integer.toString(mRgba.channels()) + " +++");
+	   
+	   int rows = mRgba.rows();
+	   int cols = mRgba.cols();
+	   int channels = mRgba.channels();
+	   
+	   int row_start = rows / 3;
+	   int row_end = rows * 2 / 3;
+	   
+	   int col_start = (cols - rows ) / 2;
+	   int col_end = col_start + rows;
+	   
+	   //Core.rectangle(mRgba, new Point(col_start, 0), new Point(col_end, rows - 1), new Scalar(255,0,0,100), 20);
+	   Core.circle(mRgba, new Point(cols/2, rows/2), rows/2, new Scalar(255,0,0,100), 20);
+	   Core.line(mRgba, new Point(cols/2,0), new Point(cols/2, rows/10), new Scalar(255,0,0,100), 15);
+	   return mRgba;
+	   
+   }
+   
    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 	   if (frame_count == 0) {
+		   mRgba_global = inputFrame.rgba();
 		   cur_img = new Mat(inputFrame.gray().size(), inputFrame.gray().type());
 	   }
 	   
@@ -163,7 +210,9 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   //}
 	   //frame_count++;
 	   
-	   cur_img = lines_detect(edge_detect(inputFrame.gray()), inputFrame.rgba());
+	   //cur_img = lines_detect(edge_detect(inputFrame.gray()), inputFrame.rgba());
+	   
+	   cur_img = overlay_target(inputFrame.rgba());
 	   
 	   return cur_img;
    }
