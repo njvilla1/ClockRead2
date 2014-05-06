@@ -20,11 +20,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.graphics.BitmapFactory;
-
-
-
-
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -38,11 +33,15 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	
 	final private String TAG = "Debug";
 	private CameraBridgeViewBase mOpenCvCameraView;
+	int frame_count = 0;
+	private Mat cur_img;
 	
 	@Override
 	 public void onCreate(Bundle savedInstanceState) {
@@ -107,19 +106,42 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 
    public void onCameraViewStopped() {
    }
-
-   public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-	   Mat src = inputFrame.rgba();
-	   Mat src_gray = inputFrame.gray();
-	   Mat dst, detected_edges;
+   
+   
+   
+   public Mat edge_detect(Mat src) {
 	   
-	   int edgeThresh = 1;
-	   int lowThreshold;
-	   final int max_lowThreshold = 100;
+	   Mat detected_edges = new Mat(src.size(), src.type());
+	   
+	   double lowThreshold = 100;
 	   int ratio = 3;
-	   int kernel_size = 3;
+	   Size sz = new Size(3,3);
 	   
+	   //dst.create( src.size(), src.type());
+	   Imgproc.blur(src, detected_edges, sz);  
+	   Imgproc.Canny(src, detected_edges, lowThreshold, lowThreshold*ratio);
+	   //src.copyTo(dst, detected_edges);
 	   
-	   return inputFrame.rgba();
+	   return detected_edges;
+   }  
+   
+   public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+	   if (frame_count == 0) {
+		   cur_img = new Mat(inputFrame.gray().size(), inputFrame.gray().type());
+	   }
+	   
+	   //implement edge canny edge detection on src
+	   
+	   //if (frame_count != 0 && frame_count % 25 == 0) {
+		//   Log.i(TAG, "wouldve edge detected");
+		   
+		   cur_img = edge_detect(inputFrame.gray());
+	   //}
+	   	   
+	   //return inputFrame.rgba();
+	   
+	   frame_count++;
+	   
+	   return cur_img;
    }
 }
