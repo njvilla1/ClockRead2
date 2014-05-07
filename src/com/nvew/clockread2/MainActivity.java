@@ -47,10 +47,12 @@ public class MainActivity extends Activity  implements OnTouchListener, CvCamera
 	private static final boolean VERBOSE = true;
 	
 	final private String TAG = "Debug";
+	public final static String X_Y_COORS = "com.nvew.clockread2.x_y_coors";
+	public final static String RGB_FRAME = "com.nvew.clockread2.rgb_frame";
 	private CameraBridgeViewBase mOpenCvCameraView;
 	int frame_count = 0;
 	private Mat cur_img;
-    private Mat mRgba_global;
+    public static Mat mRgba_global;
 	
 	@Override
 	 public void onCreate(Bundle savedInstanceState) {
@@ -112,6 +114,7 @@ public class MainActivity extends Activity  implements OnTouchListener, CvCamera
    }
    
    public boolean onTouch(View v, MotionEvent event) {
+	   int[] coors = new int[2];
        int cols = mRgba_global.cols();
        int rows = mRgba_global.rows();
 
@@ -124,6 +127,13 @@ public class MainActivity extends Activity  implements OnTouchListener, CvCamera
        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
 
        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
+       
+       coors[0] = x;
+       coors[1] = y;
+       
+       Intent intent = new Intent(this, FreezeActivity.class);
+       intent.putExtra(X_Y_COORS, coors);
+       startActivity(intent);
 
        return false; // don't need subsequent touch events
    }

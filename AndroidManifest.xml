@@ -3,13 +3,21 @@
     package="com.nvew.clockread2"
     android:versionCode="1"
     android:versionName="1.0" >
-    
-    <uses-permission android:name="android.permission.CAMERA"/>
 
-	<uses-feature android:name="android.hardware.camera" android:required="false"/>
-	<uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
-	<uses-feature android:name="android.hardware.camera.front" android:required="false"/>
-	<uses-feature android:name="android.hardware.camera.front.autofocus" android:required="false"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.front"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.front.autofocus"
+        android:required="false" />
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -28,6 +36,14 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.nvew.clockread2.FreezeActivity"
+            android:label="@string/title_activity_freeze"
+            android:parentActivityName="com.nvew.clockread2.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.nvew.clockread2.MainActivity" />
         </activity>
     </application>
 
