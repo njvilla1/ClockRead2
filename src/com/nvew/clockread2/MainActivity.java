@@ -162,6 +162,10 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   
 	   Imgproc.HoughLinesP(src, lines, rho, theta, threshold, minLineLength, maxLineGap);
 	   
+	   //draw_intersections(lines);
+	   
+	   //return mRgba;
+	   
 	   Point[] midpt_arr = new Point[lines.cols()]; //store valid midpoints
 	   Point center = new Point(overlay_horiz_center, overlay_vert_center);
 	   int dist_threshold = 100;
@@ -253,7 +257,30 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 		   runOnUiThread(new Runnable() {
 
 			    public void run() {
-			    	timeTextView.setText(Integer.toString(hours) + ":" + Integer.toString(minutes));
+			    	
+			    	String str_hours, str_minutes;
+			    	
+			    	if(hours < 10)
+			    	{
+			    		str_hours = "0" + Integer.toString(hours);
+			    	}
+			    	else
+			    	{
+			    		str_hours = Integer.toString(hours);
+			    	}
+			    	
+			    	if(minutes < 10)
+			    	{
+			    		str_minutes = "0" + Integer.toString(minutes);
+			    	}
+			    	else
+			    	{
+			    		str_minutes = Integer.toString(minutes);
+			    	}
+			    	
+			    	
+			    	
+			    	timeTextView.setText(str_hours + ":" + str_minutes);
 			    }
 			}); 
 	   }
@@ -261,7 +288,102 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   return mRgba;
    }
    
-   public boolean points_are_close(Point a, Point b, int max_dist)
+   public void draw_intersections(Mat lines)
+   {
+	   
+	   int num_endpts = 2*lines.cols();
+	   EndPoint[] endpts = new EndPoint[num_endpts];
+
+	   //create array of endpoints
+	   
+	   for (int x = 0, y = 0; x < lines.cols(); x++, y+=2) 
+	    {
+	          double[] vec = lines.get(0, x);
+	          double x1 = vec[0], 
+	                 y1 = vec[1],
+	                 x2 = vec[2],
+	                 y2 = vec[3];
+	          
+	          Point a = new Point(x1, y1);
+	          Point b = new Point(x2, y2);
+	          
+	          EndPoint[] temp = EndPoint.get_endpoints(a,b);
+	          
+	          endpts[y] = temp[0];
+	          endpts[y+1] = temp[1];
+	    }
+	   
+	   //sort points according to x coordinates
+	   
+	   quicksort_endpoints(endpts, 0, num_endpts - 1);
+	   
+	   /*for(int n=0; n< num_endpts; n++)
+	   {
+		   Log.v(TAG, "Point " + Integer.toString(n) + ": " + Double.toString(endpts[n].self.x));
+	   }*/
+	   
+	   //create self-balancing BST
+	   
+	   AVLTreeNode root = null;
+	   
+	   //loop through sorted points
+	   
+	   for(int n=0; n< num_endpts; n++)
+	   {
+		   if(endpts[n].isLeft)
+		   {
+			   root = SelfBalancingTree.insertIntoTree(root, endpts[n]);
+			   
+			   //if(doIntersect(endpts[n]))
+			   
+		   }
+		   
+		   
+	   }
+	   
+	   return;
+	   
+   }
+   
+   public static void quicksort_endpoints(EndPoint[] a, int p, int r)
+   {
+	   if(p<r)
+       {
+           int q=partition(a,p,r);
+           quicksort_endpoints(a,p,q);
+           quicksort_endpoints(a,q+1,r);
+       }
+   }
+   
+   private static int partition(EndPoint[] a, int p, int r) {
+
+       EndPoint x = a[p];
+       int i = p-1 ;
+       int j = r+1 ;
+
+       while (true) {
+           i++;
+           while ( i< r && a[i].self.x < x.self.x)
+               i++;
+           j--;
+           while (j>p && a[j].self.x > x.self.x)
+               j--;
+
+           if (i < j)
+               swap(a, i, j);
+           else
+               return j;
+       }
+   }
+   
+   private static void swap(EndPoint[] a, int i, int j) {
+       // TODO Auto-generated method stub
+       EndPoint temp = a[i];
+       a[i] = a[j];
+       a[j] = temp;
+   }
+   
+   public static boolean points_are_close(Point a, Point b, int max_dist)
    {
 	   int dist = (int)Math.sqrt(Math.pow((a.x - b.x),2) + Math.pow((a.y - b.y),2));
 	   
