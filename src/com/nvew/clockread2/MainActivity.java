@@ -19,10 +19,13 @@ import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.graphics.BitmapFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -47,12 +50,25 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	int frame_count = 0;
 	private Mat cur_img;
 	
+	TextView timeTextView;
+	
+	List<double[]> hands = new ArrayList<double[]>();
+	
+	//double[][] hands = new double[5][4]; 
+		//represents start and end coordinates for 3 clock hands
+		//hands[0] = hour hand, hands[1] = minute hand, hands[2] = second hand
+		//hands[0][0-3] are x1, y1, x2, y2 coordinates of hour hand
+	
 	@Override
 	 public void onCreate(Bundle savedInstanceState) {
 	     Log.i(TAG, "called onCreate");
 	     super.onCreate(savedInstanceState);
 	     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 	     setContentView(R.layout.activity_main);
+	     
+	     timeTextView = (TextView) findViewById(R.id.timeTextView);
+	     
+	     timeTextView.setText("test");
 	     
 	     
 	     mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.HelloOpenCvView);
@@ -131,26 +147,67 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   double rho = 1;
 	   double theta = Math.PI/180;
 	   int threshold = 50;
-	   double minLineLength = 150;
-	   double maxLineGap = 25;
+	   double minLineLength = 100;
+	   double maxLineGap = 35;
 	   
 	   Imgproc.HoughLinesP(src, lines, rho, theta, threshold, minLineLength, maxLineGap);
-	   
-	   for (int x = 0; x < lines.cols(); x++) 
-	    {
-	          double[] vec = lines.get(0, x);
-	          double x1 = vec[0], 
-	                 y1 = vec[1],
-	                 x2 = vec[2],
-	                 y2 = vec[3];
-	          Point start = new Point(x1, y1);
-	          Point end = new Point(x2, y2);
 
-	          Core.line(mRgba, start, end, new Scalar(255,0,0), 3);
-
-	    }
 	   
+	   for (int i = 0; i < lines.cols(); i++){
+		   double[] vec1 = lines.get(0, i);
+		   if (i == 0)
+			   hands.add(vec1);
+		   
+		   if (p_distance(vec1[0], vec1[1], src.width()/2, src.height()/2) < 100 || 
+				   p_distance(vec1[2], vec1[3], src.width()/2, src.height()/2) < 100) {
+			   
+			   
+			   /*for (int j = 0; j < hands.size(); j++) {
+				   if (compare_lines(hands.get(j), vec1) == 1) {
+					   double[] avg_vec = new double[4];
+					   avg_vec[0] = (vec1[0] + hands.get(j)[0])/2;
+					   avg_vec[1] = (vec1[1] + hands.get(j)[1])/2;
+					   avg_vec[2] = (vec1[2] + hands.get(j)[2])/2;
+					   avg_vec[3] = (vec1[3] + hands.get(j)[3])/2;
+					   hands.set(j, avg_vec);
+					   
+					   
+					   
+				   } else {
+					   
+				   }
+			   }*/
+			   
+			   //hands.add(vec1);
+			   
+		   }
+		   
+		   for (double[] temp : hands) {
+			   Point start = new Point(temp[0], temp[1]);
+			   Point end = new Point (temp[2], temp[3]);
+			   Core.line(mRgba, start, end, new Scalar(0, 255, 0), 3);
+		   }
+	   }
+	   hands.clear();
+
 	   return mRgba;
+   }
+   
+   public double p_distance (double x1, double y1, double x2, double y2) {
+	   return( Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)));
+   }
+   
+   public int compare_lines(double[] line1, double[] line2) {
+	   if (((p_distance(line1[0], line1[1], line2[0], line2[1]) < 50 &&
+		     p_distance(line1[2], line1[3], line2[2], line2[3]) < 50)||
+		     p_distance(line1[2], line1[3], line2[0], line2[1]) < 50 &&
+		     p_distance(line1[0], line1[1], line2[2], line2[3]) < 50) )
+		   return 1;
+	   else
+		   return 0;
+	   
+	   //0 -> lines are not similar
+	   //1 -> lines are similar
    }
    
    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
