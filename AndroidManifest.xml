@@ -37,14 +37,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.nvew.clockread2.FreezeActivity"
-            android:label="@string/title_activity_freeze"
-            android:parentActivityName="com.nvew.clockread2.MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.nvew.clockread2.MainActivity" />
-        </activity>
     </application>
 
 </manifest>
