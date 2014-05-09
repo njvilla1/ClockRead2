@@ -2,7 +2,7 @@ package com.nvew.clockread2;
 
 public class AVLTree<E extends Comparable<? super E>> {
 
-    private AVLNode<E> rootAbove;
+    public AVLNode<E> rootAbove;
 
     public AVLTree(){
          rootAbove = new AVLNode<E>();
@@ -177,7 +177,7 @@ public class AVLTree<E extends Comparable<? super E>> {
      * element on its left child or the far left element on its right
      * child replaces it.
      ***/
-    private void remove(E element, AVLNode<E> temp){
+    public void remove(E element, AVLNode<E> temp){
         if(temp == null)
              return;
 
@@ -334,6 +334,89 @@ public class AVLTree<E extends Comparable<? super E>> {
         }
 
         return false;
+    }
+    
+    
+    public E pred(E element)
+    {
+    	
+    	AVLNode<E> temp = rootAbove.getLeft();
+    	AVLNode<E> tail = temp;
+
+        while(temp != null){
+             if(temp.getElement().equals(element))
+             {
+            	 if(tail == temp)
+     			  {
+     				  if(temp.getLeft() != null)
+     				  {
+     					  return temp.getLeft().getElement();
+     				  }
+     				  else
+     					  return null;
+     			  }
+     			  else
+     			  {
+     				 if(temp.getLeft() != null)
+    				  {
+    					  return temp.getLeft().getElement();
+    				  }
+     				  else if(temp == tail.getRight())
+     				  {
+     					  return tail.getElement();
+     				  }
+     				  else
+     					  return null;
+     			  }
+             }
+
+             int balance = element.compareTo(temp.getElement());
+             tail = temp;
+             temp = (balance < 0) ? temp.getLeft() : temp.getRight();
+        }
+
+        return null; 	  
+    }
+    
+    public E succ(E element)
+    {
+    	
+    	AVLNode<E> temp = rootAbove.getLeft();
+    	AVLNode<E> tail = temp;
+
+        while(temp != null){
+             if(temp.getElement().equals(element))
+             {
+            	 if(tail == temp)
+     			  {
+     				  if(temp.getRight() != null)
+     				  {
+     					  return temp.getRight().getElement();
+     				  }
+     				  else
+     					  return null;
+     			  }
+     			  else
+     			  {
+     				 if(temp.getRight() != null)
+    				  {
+    					  return temp.getRight().getElement();
+    				  }
+     				  else if(temp == tail.getLeft())
+     				  {
+     					  return tail.getElement();
+     				  }
+     				  else
+     					  return null;
+     			  }
+             }
+
+             int balance = element.compareTo(temp.getElement());
+             tail = temp;
+             temp = (balance < 0) ? temp.getLeft() : temp.getRight();
+        }
+
+        return null; 	  
     }
     
 }

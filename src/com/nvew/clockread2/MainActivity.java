@@ -162,11 +162,11 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   
 	   Imgproc.HoughLinesP(src, lines, rho, theta, threshold, minLineLength, maxLineGap);
 	   
-	   //draw_intersections(lines);
+	   draw_intersections(lines);
 	   
-	   //return mRgba;
+	   return mRgba;
 	   
-	   Point[] midpt_arr = new Point[lines.cols()]; //store valid midpoints
+	   /*Point[] midpt_arr = new Point[lines.cols()]; //store valid midpoints
 	   Point center = new Point(overlay_horiz_center, overlay_vert_center);
 	   int dist_threshold = 100;
 	   
@@ -285,7 +285,7 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 			}); 
 	   }
 	   
-	   return mRgba;
+	   return mRgba;*/
    }
    
    public void draw_intersections(Mat lines)
@@ -293,6 +293,7 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   
 	   int num_endpts = 2*lines.cols();
 	   EndPoint[] endpts = new EndPoint[num_endpts];
+	   Point inter_temp;
 
 	   //create array of endpoints
 	   
@@ -306,6 +307,8 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	          
 	          Point a = new Point(x1, y1);
 	          Point b = new Point(x2, y2);
+	          
+	          Core.line(mRgba, a, b, new Scalar(255,0,0), 3); // Draw detected lines
 	          
 	          EndPoint[] temp = EndPoint.get_endpoints(a,b);
 	          
@@ -330,39 +333,76 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   
 	   for(int n=0; n< num_endpts; n++)
 	   {
-		   //AVLTreeNode pred = SelfBalancingTree.pred(root, endpts[n]);
-		   //AVLTreeNode succ = SelfBalancingTree.succ(root, endpts[n]);
+		   EndPoint pred = (EndPoint)tree.pred(endpts[n]);
+		   EndPoint succ = (EndPoint)tree.succ(endpts[n]);
 		   
 		   if(endpts[n].isLeft)
 		   {
 			   tree.insert(endpts[n]);
 			   
-			   if(pred =! null && do_intersect(endpts[n], pred.value))
+			   if(pred != null && do_intersect(endpts[n], pred))
 			   {
-				   //find and draw intersection
+				   inter_temp = find_intersection(endpts[n],pred);
+				   Core.circle(mRgba, inter_temp, 10, new Scalar(0,0,255), 10);
 			   }
 			   
-			   if(succ =! null && do_intersect(endpts[n], succ.value))
+			   if(succ != null && do_intersect(endpts[n], succ))
 			   {
-				   //find and draw intersection
+				   inter_temp = find_intersection(endpts[n],succ);
+				   Core.circle(mRgba, inter_temp, 10, new Scalar(0,0,255), 10);
 			   }
 			   
 		   }
 		   else
 		   {
-			   if(pred != null && succ != null && do_intersect(pred.value, succ.value))
+			   if(pred != null && succ != null && do_intersect(pred, succ))
 			   {
-				 //find and draw intersection 
+				   inter_temp = find_intersection(pred,succ);
+				   Core.circle(mRgba, inter_temp, 10, new Scalar(0,0,255), 10);
 			   }
 			   
-			   
+			   tree.remove(endpts[n], tree.rootAbove);
 		   }
-		   
-		   
 	   }
 	   
 	   return;
 	   
+   }
+   
+   public static Point find_intersection(EndPoint a, EndPoint b)
+   {
+	   double m1, m2; //slopes
+	   double c1, c2; //intercepts
+	   double inter_x, inter_y; // interception coordinates
+	   
+	   m1 = (a.self.y - a.other.y)/(a.self.x - a.other.x);
+	   m2 = (b.self.y - b.other.y)/(b.self.x - b.other.x);
+	   
+	   c1 = a.other.y - m1 * a.other.x;
+	   c2 = b.other.y - m2 * b.other.x;
+	   
+	   inter_x = (c2 - c1) / (m1 -m2);
+	   inter_y = m1 * inter_x + c1;
+	   
+	   return new Point(inter_x, inter_y);
+   }
+   
+   public static boolean do_intersect(EndPoint a, EndPoint b)
+   {
+	   double m1, m2; //slopes
+	   double c1, c2; //intercepts
+	   double inter_x, inter_y; // interception coordinates
+	   
+	   m1 = (a.self.y - a.other.y)/(a.self.x - a.other.x);
+	   m2 = (b.self.y - b.other.y)/(b.self.x - b.other.x);
+	   
+	   c1 = a.other.y - m1 * a.other.x;
+	   c2 = b.other.y - m2 * b.other.x;
+	   
+	   inter_x = (c2 - c1) / (m1 -m2);
+	   inter_y = m1 * inter_x + c1;
+	   
+	   return m1 != m2 ;
    }
    
    public static void quicksort_endpoints(EndPoint[] a, int p, int r)
@@ -410,7 +450,7 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   return dist <= max_dist;
    }
    
-   public static boolean do_intersect(EndPoint a, EndPoint b)
+   /*public static boolean do_intersect(EndPoint a, EndPoint b)
    {
 	   		Point p1 = a.self, q1 = a.other, p2 = b.self, q2 = b.other;
 	   
@@ -439,7 +479,7 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	       if (o4 == 0 && onSegment(p2, q1, q2)) return true;
 	    
 	       return false; // Doesn't fall in any of the above cases
-	   }
+	   }*/
 
 	public static int orientation(Point p, Point q, Point r)
 	{
