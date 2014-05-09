@@ -97,7 +97,7 @@ public class SelfBalancingTree
       tree = new AVLTreeNode (val);
       return tree;
     }
-    if (val.self.x < tree.value.self.x)
+    if (val.self.y < tree.value.self.y)
     {
       tree.left = insertIntoTree (tree.left, val);
     }
@@ -118,21 +118,21 @@ public class SelfBalancingTree
     System.out.println (val + "   " + balance);
     
     // Left Left Case
-    if (balance > 1 && val.self.x < tree.left.value.self.x)
+    if (balance > 1 && val.self.y < tree.left.value.self.y)
     {
       System.out.println ("left-left case : going for right : " + val + "   " + tree.right.value);
       return rightRotate(tree);
     }
 
     // Right Right Case
-    if (balance < -1 && val.self.x > tree.right.value.self.x)
+    if (balance < -1 && val.self.y > tree.right.value.self.y)
     {
       System.out.println ("right-right case : going for left : " + val + "   " + tree.right.value);
       return leftRotate(tree);
     }
 
     // Left Right Case
-    if (balance > 1 && val.self.x > tree.left.value.self.x)
+    if (balance > 1 && val.self.y > tree.left.value.self.y)
     {
       System.out.println ("left-right case : going for left and then right : " + val + "   " + tree.right.value);
       tree.left =  leftRotate(tree.left);
@@ -140,7 +140,7 @@ public class SelfBalancingTree
     }
 
     // Right Left Case
-    if (balance < -1 && val.self.x < tree.right.value.self.x)
+    if (balance < -1 && val.self.y < tree.right.value.self.y)
     {
       System.out.println ("right-left case : going for right and then left : " + val + "   " + tree.right.value);
       tree.right = rightRotate(tree.right);
@@ -178,6 +178,100 @@ public class SelfBalancingTree
       postorderTraversal (tree.right);
       System.out.print (tree.value + "   ");
     }
+  }
+  
+  public static AVLTreeNode pred(AVLTreeNode node, EndPoint val)
+  {
+	  if (node == null) {
+		  return null;
+	  }
+	  
+	  AVLTreeNode last = node, cur = node;
+	  
+	  while(cur != null)
+	  {
+		  if (cur.value == val) {
+			  if(last == cur)
+			  {
+				  if(cur.left != null)
+				  {
+					  return cur.left;
+				  }
+				  else
+					  return null;
+			  }
+			  else
+			  {
+				  if(cur.left != null)
+				  {
+					  return cur.left;
+				  }
+				  else if(cur == last.right)
+				  {
+					  return last;
+				  }
+				  else
+					  return null;
+			  }
+		  } else if (cur.value.self.y > val.self.y) {
+			  last = cur;
+			  cur = cur.left;
+		  } else {
+			  last = cur;
+			  cur = cur.right;
+		  }
+	  }
+	  
+	  return null;
+	
+	  
+  }
+  
+  public static AVLTreeNode succ(AVLTreeNode node, EndPoint val)
+  {
+	  if (node == null) {
+		  return null;
+	  }
+	  
+	  AVLTreeNode last = node, cur = node;
+	  
+	  while(cur != null)
+	  {
+		  if (cur.value == val) {
+			  if(last == cur)
+			  {
+				  if(cur.right != null)
+				  {
+					  return cur.right;
+				  }
+				  else
+					  return null;
+			  }
+			  else
+			  {
+				  if(cur.right != null)
+				  {
+					  return cur.right;
+				  }
+				  else if(cur == last.left)
+				  {
+					  return last;
+				  }
+				  else
+					  return null;
+			  }
+		  } else if (cur.value.self.y > val.self.y) {
+			  last = cur;
+			  cur = cur.left;
+		  } else {
+			  last = cur;
+			  cur = cur.right;
+		  }
+	  }
+	  
+	  return null;
+	
+	  
   }
   
 }

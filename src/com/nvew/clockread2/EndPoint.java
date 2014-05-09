@@ -1,10 +1,12 @@
 package com.nvew.clockread2;
 
+import java.util.Comparator;
+
 import org.opencv.core.Point;
 
 import android.util.Log;
 
-public class EndPoint {
+public class EndPoint implements Comparable<EndPoint>{
 	
 	public Point self, other;
 	boolean isLeft;
@@ -27,6 +29,29 @@ public class EndPoint {
 		
 		return pts;
 	}
+	
+	public int compareTo(EndPoint compareEndPoint)
+	{
+		int compareQuantity = (int)((EndPoint) compareEndPoint).self.y;
+		
+		return (int)this.self.y - compareQuantity;
+	}
+	
+	static class YComparator implements Comparator<EndPoint>
+    {
+    	public int compare(EndPoint p1, EndPoint p2)
+    	{
+    		double y1 = p1.self.y;
+    		double y2 = p2.self.y;
+
+    		if (y1 == y2)
+    			return 0;
+    		else if (y1 > y2)
+    			return 1;
+    		else
+    			return -1;
+    	}
+    }
 	
 	public static void test_EndPoint()
 	{

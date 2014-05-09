@@ -324,17 +324,37 @@ public class MainActivity extends Activity  implements CvCameraViewListener2 {
 	   
 	   //create self-balancing BST
 	   
-	   AVLTreeNode root = null;
+	   AVLTree tree = new AVLTree();
 	   
 	   //loop through sorted points
 	   
 	   for(int n=0; n< num_endpts; n++)
 	   {
+		   //AVLTreeNode pred = SelfBalancingTree.pred(root, endpts[n]);
+		   //AVLTreeNode succ = SelfBalancingTree.succ(root, endpts[n]);
+		   
 		   if(endpts[n].isLeft)
 		   {
-			   root = SelfBalancingTree.insertIntoTree(root, endpts[n]);
+			   tree.insert(endpts[n]);
 			   
-			   //if(doIntersect(endpts[n], root.pred(endpts[n]))
+			   if(pred =! null && do_intersect(endpts[n], pred.value))
+			   {
+				   //find and draw intersection
+			   }
+			   
+			   if(succ =! null && do_intersect(endpts[n], succ.value))
+			   {
+				   //find and draw intersection
+			   }
+			   
+		   }
+		   else
+		   {
+			   if(pred != null && succ != null && do_intersect(pred.value, succ.value))
+			   {
+				 //find and draw intersection 
+			   }
+			   
 			   
 		   }
 		   
